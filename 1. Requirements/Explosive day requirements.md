@@ -4,7 +4,6 @@
 
 **You are to solo develop a console-based Minesweeper game. This game must follow traditional Minesweeper rules and offer players various board sizes and difficulty levels to choose from. The game must feature the following:**
 
- 
 - 3 difficulty levels for the player to choose:
 
 - Easy – 8x8 grid with 10 mines
