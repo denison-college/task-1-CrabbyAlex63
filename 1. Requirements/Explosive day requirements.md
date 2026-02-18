@@ -1,6 +1,6 @@
-**1. Rename this file to the name of your game
+**1. Rename this file to the name of your game**
 
-2. Write the requirements using Markdown format.**
+**2. Write the requirements using Markdown format.**
 
 **You are to solo develop a console-based Minesweeper game. This game must follow traditional Minesweeper rules and offer players various board sizes and difficulty levels to choose from. The game must feature the following:**
 
