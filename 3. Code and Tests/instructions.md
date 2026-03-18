@@ -8,7 +8,7 @@ import sys
 import time
 from gooey import Gooey, GooeyParser
 
-# This function makes text appear slowly in GUI
+#This function makes text appear slowly in GUI
 def slow_print(text, speed=0.03):
     for char in text:
         sys.stdout.write(char)
@@ -63,6 +63,6 @@ def main():
         slow_print(f"You selected: {args.action}")
  
     
-# Gooey LAUNCHER
+#Gooey LAUNCHER
 if __name__ == '__main__':
     main()
