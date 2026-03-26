@@ -1,5 +1,6 @@
 #python -m pip install six
 #pip install Gooey
+from argparse import ArgumentParser
 import sys
 import time
 from gooey import Gooey, GooeyParser
@@ -40,9 +41,11 @@ def main():
     if args.action == "Play":
         print("Nice Choice!")
         print(f"Starting game on {args.difficulty} mode...")
+
+    # Easy mode
         
     # Instructions action
-    elif args.action == "Instructions":
+    if args.action == "Instructions":
         print("Knowledge means survival.\n")
         print("The difficulty you choose will dictate how hard and more bomb-packed the game is. Your goal is to strategically locate and mark all the bombs without setting one off. \n")
         print("Upon your mission, you will come across ‘powers’ which may be beneficial or negative towards your mission. \n")
