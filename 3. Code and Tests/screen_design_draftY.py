@@ -42,6 +42,8 @@ def main():
     if args.action == "Play":
         slow_print("Nice Choice!")
         slow_print(f"Starting game on {args.difficulty} mode...")
+        
+
     # Instructions action
     elif args.action == "Instructions":
         slow_print("Knowledge means survival.")
