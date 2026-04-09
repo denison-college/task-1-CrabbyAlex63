@@ -1,3 +1,19 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import random
+import time
+import json
+import os
+# Saves Highscores
+highscore_file = "minesweeper_highscores.json"
+
+# Difficulies 
+Difficulties = {
+        "Easy": {"rows": *, "cols": 8, "mines": 10},
+        "Medium": {"rows": 10, "cols": 10, "mines": 15},
+        "Hard": {"rows": 12, "cols": 12, "mines": 25},
+}
+
 
         "Knowledge means survival.
         "The difficulty you choose will dictate how hard and more bomb-packed the game is. Your goal is to strategically locate and mark all the bombs without setting one off.
