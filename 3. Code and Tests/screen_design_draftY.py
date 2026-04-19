@@ -212,8 +212,12 @@ class Minesweeper:
 # cant flag already revelaed cells
         if cell.is_revealed:
             return
-# 
-        cell.is_flagged =
+
+ # Game starter        
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = Minesweeper(root)
+    root.mainloop()
 
         "Knowledge means survival.
         "The difficulty you choose will dictate how hard and more bomb-packed the game is. Your goal is to strategically locate and mark all the bombs without setting one off.
