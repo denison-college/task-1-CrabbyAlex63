@@ -1,3 +1,1 @@
-You could use an online program to create your stucture chart.  
-
-Make sure to add the export to this folder, commit and sync. 
+<img width="822" height="583" alt="image" src="https://github.com/user-attachments/assets/59510ab7-5a95-4fbd-b33c-dfe9527e8980" />
