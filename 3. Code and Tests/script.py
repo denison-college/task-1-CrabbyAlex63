@@ -222,32 +222,38 @@ class Minesweeper:
         else:
             btn.config(text="", bg="lightgray")
 
+# Reveals a cell, updates its appearance, and spreads to nearby cells if empty
     def reveal_cell(self, row, col):
         cell = self.board[row][col]
         btn = self.buttons[row][col]
 
+# Prevent revealing flagged or already revealed cells
         if cell.is_revealed or cell.is_flagged:
             return
 
+# Mark cell as revealed and update button appearance
         cell.is_revealed = True
         btn.config(relief=tk.SUNKEN, state="disabled", bg="white")
 
+# display explosion
         if cell.is_mine:
             btn.config(text="✹", bg="red", fg="black")
             return
-
+# If adjacent mines then show number
         if cell.adjacent_mines > 0:
             btn.config(
                 text=str(cell.adjacent_mines),
                 fg=NUMBER_COLOURS.get(cell.adjacent_mines, "black")
             )
         else:
+# If empty → recursively reveal surrounding cells
             btn.config(text="")
             for r in range(max(0, row - 1), min(self.rows, row + 2)):
                 for c in range(max(0, col - 1), min(self.cols, col + 2)):
                     if not self.board[r][c].is_revealed:
                         self.reveal_cell(r, c)
 
+# Updates the game timer and dynamically adjusts score over time
     def update_timer(self):
         if self.game_over or self.first_click:
             return
@@ -260,6 +266,7 @@ class Minesweeper:
 
         self.root.after(1000, self.update_timer)
 
+# Checks if all non-mine cells have been revealed
     def check_win(self):
         for r in range(self.rows):
             for c in range(self.cols):
@@ -268,6 +275,7 @@ class Minesweeper:
                     return False
         return True
 
+# Calculates final score and applies penalties for incorrect flags
     def calculate_final_score(self):
         base_score = max(0, 100 - self.elapsed_time)
         wrong_flags = 0
@@ -281,6 +289,7 @@ class Minesweeper:
         final_score = max(0, base_score - (wrong_flags * 5))
         return final_score, wrong_flags
 
+# Displays all mines and highlights correct/incorrect flags
     def reveal_all_mines(self):
         for r in range(self.rows):
             for c in range(self.cols):
@@ -295,6 +304,7 @@ class Minesweeper:
                 elif cell.is_flagged and not cell.is_mine:
                     btn.config(text="X", bg="pink", fg="black")
 
+    # Handles win/loss, calculates score, and displays results
     def end_game(self, won):
         self.game_over = True
         self.elapsed_time = int(time.time() - self.start_time) if self.start_time else 0
@@ -323,6 +333,7 @@ class Minesweeper:
         self.timer_label.config(text=f"Time: {self.elapsed_time}")
         self.score_label.config(text=f"Score: {0 if not won else final_score}")
 
+# Reveals one safe cell automatically
     def use_hint(self):
         if self.game_over:
             return
@@ -353,6 +364,7 @@ class Minesweeper:
         if self.check_win():
             self.end_game(True)
 
+# Loads saved highscores from file
     def load_highscores(self):
         if not os.path.exists(highscore_file):
             return {"Easy": [], "Medium": [], "Hard": []}
@@ -363,6 +375,7 @@ class Minesweeper:
         except:
             return {"Easy": [], "Medium": [], "Hard": []}
 
+# Saves new highscore and keeps top 5
     def save_highscore(self, name, difficulty, score):
         highscores = self.load_highscores()
         highscores[difficulty].append({"name": name, "score": score})
@@ -371,6 +384,7 @@ class Minesweeper:
         with open(highscore_file, "w") as f:
             json.dump(highscores, f, indent=4)
 
+# Displays highscores in a popup window
     def show_highscores(self):
         highscores = self.load_highscores()
 
