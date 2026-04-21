@@ -8,13 +8,19 @@ import os
 # Saves Highscores
 highscore_file = "minesweeper_highscores.json"
 
+# Difficulies
+DIFFICULTIES = {
+    "Easy": {"rows": 8, "cols": 8, "mines": 10},
+    "Medium": {"rows": 10, "cols": 10, "mines": 15},
+    "Hard": {"rows": 12, "cols": 12, "mines": 25},
+    }
 
-# Difficulies 
-Difficulties = {
-        "Easy": {"rows": *, "cols": 8, "mines": 10},
-        "Medium": {"rows": 10, "cols": 10, "mines": 15},
-        "Hard": {"rows": 12, "cols": 12, "mines": 25},
-}
+# Changing number colours
+NUMBER_COLOURS = {
+    1: "blue", 2: "green", 3: "red", 4: "darkblue",
+    5: "brown", 6: "cyan", 7: "black", 8: "gray"
+    }
+
 # Cell being a bomb or not a bomb
 class Cell:
     def __init__(self):
@@ -23,13 +29,11 @@ class Cell:
         self.is_flagged = False
         self.adjacent_mines = 0
 
-
 # Setting up the actual game
 class Minesweeper:
     def __init__(self, root):
         self.root = root
         self.root.title("Explosive Day - Minesweeper")
-
 
 # Reseting all of the thingy things (variables)
         self.player_name = None
@@ -47,7 +51,6 @@ class Minesweeper:
         self.score = 100
         self.hint_used = False
 
-
 # Creates the top section showing info
         self.top_frame = tk.Frame(root)
         self.top_frame.pack(pady=5)
@@ -60,7 +63,6 @@ class Minesweeper:
 
         self.score_label = tk.Label(self.top_frame, text="Score: 100", width=12)
         self.score_label.grid(row=1, column=1)
-
 
 # changes difficulty/start game.
         self.difficulty_var = tk.StringVar(value="Easy")
@@ -152,6 +154,7 @@ class Minesweeper:
 
             self.board[r][c].is_mine = True
             placed += 1
+
 # number of mines around each already placed mine
         for r in range(self.rows):
             for c in range(self.cols):
@@ -212,17 +215,179 @@ class Minesweeper:
 # cant flag already revelaed cells
         if cell.is_revealed:
             return
+        cell.is_flagged = not cell.is_flagged
 
- # Game starter        
+        if cell.is_flagged:
+            btn.config(text="⚑", fg="orange", bg="lightgray")
+        else:
+            btn.config(text="", bg="lightgray")
+
+    def reveal_cell(self, row, col):
+        cell = self.board[row][col]
+        btn = self.buttons[row][col]
+
+        if cell.is_revealed or cell.is_flagged:
+            return
+
+        cell.is_revealed = True
+        btn.config(relief=tk.SUNKEN, state="disabled", bg="white")
+
+        if cell.is_mine:
+            btn.config(text="✹", bg="red", fg="black")
+            return
+
+        if cell.adjacent_mines > 0:
+            btn.config(
+                text=str(cell.adjacent_mines),
+                fg=NUMBER_COLOURS.get(cell.adjacent_mines, "black")
+            )
+        else:
+            btn.config(text="")
+            for r in range(max(0, row - 1), min(self.rows, row + 2)):
+                for c in range(max(0, col - 1), min(self.cols, col + 2)):
+                    if not self.board[r][c].is_revealed:
+                        self.reveal_cell(r, c)
+
+    def update_timer(self):
+        if self.game_over or self.first_click:
+            return
+
+        self.elapsed_time = int(time.time() - self.start_time)
+        current_score = max(0, 100 - self.elapsed_time)
+
+        self.timer_label.config(text=f"Time: {self.elapsed_time}")
+        self.score_label.config(text=f"Score: {current_score}")
+
+        self.root.after(1000, self.update_timer)
+
+    def check_win(self):
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.board[r][c]
+                if not cell.is_mine and not cell.is_revealed:
+                    return False
+        return True
+
+    def calculate_final_score(self):
+        base_score = max(0, 100 - self.elapsed_time)
+        wrong_flags = 0
+
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.board[r][c]
+                if cell.is_flagged and not cell.is_mine:
+                    wrong_flags += 1
+
+        final_score = max(0, base_score - (wrong_flags * 5))
+        return final_score, wrong_flags
+
+    def reveal_all_mines(self):
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.board[r][c]
+                btn = self.buttons[r][c]
+
+                if cell.is_mine:
+                    if cell.is_flagged:
+                        btn.config(text="⚑", bg="yellow", fg="orange")
+                    else:
+                        btn.config(text="✹", bg="red", fg="black")
+                elif cell.is_flagged and not cell.is_mine:
+                    btn.config(text="X", bg="pink", fg="black")
+
+    def end_game(self, won):
+        self.game_over = True
+        self.elapsed_time = int(time.time() - self.start_time) if self.start_time else 0
+        final_score, wrong_flags = self.calculate_final_score()
+        self.score = final_score
+
+        self.reveal_all_mines()
+
+        if won:
+            self.save_highscore(self.player_name, self.difficulty, final_score)
+            messagebox.showinfo(
+                "You Win!",
+                f"Congratulations, {self.player_name}!\n\n"
+                f"Time: {self.elapsed_time} seconds\n"
+                f"Wrong flags: {wrong_flags}\n"
+                f"Final Score: {final_score}"
+            )
+        else:
+            messagebox.showinfo(
+                "Game Over",
+                f"You hit a mine!\n\n"
+                f"Time: {self.elapsed_time} seconds\n"
+                f"Final Score: 0"
+            )
+
+        self.timer_label.config(text=f"Time: {self.elapsed_time}")
+        self.score_label.config(text=f"Score: {0 if not won else final_score}")
+
+    def use_hint(self):
+        if self.game_over:
+            return
+
+        if self.hint_used:
+            messagebox.showinfo("Hint", "You already used your one hint this game.")
+            return
+
+        if self.first_click:
+            messagebox.showinfo("Hint", "Make your first move before using a hint.")
+            return
+
+        safe_cells = []
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.board[r][c]
+                if not cell.is_mine and not cell.is_revealed and not cell.is_flagged:
+                    safe_cells.append((r, c))
+
+        if not safe_cells:
+            messagebox.showinfo("Hint", "No safe cells available.")
+            return
+
+        row, col = random.choice(safe_cells)
+        self.reveal_cell(row, col)
+        self.hint_used = True
+
+        if self.check_win():
+            self.end_game(True)
+
+    def load_highscores(self):
+        if not os.path.exists(highscore_file):
+            return {"Easy": [], "Medium": [], "Hard": []}
+
+        try:
+            with open(highscore_file, "r") as f:
+                return json.load(f)
+        except:
+            return {"Easy": [], "Medium": [], "Hard": []}
+
+    def save_highscore(self, name, difficulty, score):
+        highscores = self.load_highscores()
+        highscores[difficulty].append({"name": name, "score": score})
+        highscores[difficulty] = sorted(highscores[difficulty], key=lambda x: x["score"], reverse=True)[:5]
+
+        with open(highscore_file, "w") as f:
+            json.dump(highscores, f, indent=4)
+
+    def show_highscores(self):
+        highscores = self.load_highscores()
+
+        text = ""
+        for difficulty in ["Easy", "Medium", "Hard"]:
+            text += f"{difficulty}:\n"
+            if highscores.get(difficulty):
+                for i, entry in enumerate(highscores[difficulty], start=1):
+                    text += f"{i}. {entry['name']} - {entry['score']}\n"
+            else:
+                text += "No scores yet\n"
+            text += "\n"
+
+        messagebox.showinfo("Highscores", text)
+
+# Game starter
 if __name__ == "__main__":
     root = tk.Tk()
     game = Minesweeper(root)
     root.mainloop()
-
-        "Knowledge means survival.
-        "The difficulty you choose will dictate how hard and more bomb-packed the game is. Your goal is to strategically locate and mark all the bombs without setting one off.
-        "Upon your mission, you will come across ‘powers’ which may be beneficial or negative towards your mission.
-        "To win the game, all tiles must be correctly marked or cleared.
-        "To mark a tile of a bomb, you are to type the coordinates of the chosen tile, then when given the selection prompt, you choose ‘Mark’. This will change the tile into a ‘p’, this represents a flag.
-        "To reveal a tile, you are to type the coordinates of the chosen tile, then when given the selection prompt, you choose ‘Reveal’. This will change the tile to one of the following 2: 0, which represents a clear tile, or an ?, which represents a bomb.
-        "Upon discovering a bomb you will lose the game.
